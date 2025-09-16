@@ -1,5 +1,9 @@
 # SEC Document Search - Engineering Assessment
 
+## Background
+
+The project involves working with SEC 10-K filings, which are comprehensive annual reports filed by public companies. These documents provide a detailed overview of a company's financial performance, including business descriptions, risk factors, financial analysis, and other structured data. 10-K filings are crucial for investors and analysts as they offer insights into a company's operations and financial health. However, they can be cumbersome to work with due to their length and complexity, often spanning hundreds of pages with dense financial and legal jargon. This assessment is designed to build a basic document search interface to help navigate and extract relevant information from these extensive reports more efficiently within a 3-hour timeframe.
+
 ## Git LFS Setup
 
 Git LFS (Large File Storage) is an extension for Git that allows you to manage large files efficiently by replacing them in your repository with lightweight references. The actual file content is stored on a remote server. In this project, the database files located inside the `db` directory are managed using Git LFS. This approach is particularly useful for handling these large database files, as it keeps your repository size manageable and improves performance. Before cloning or working with this repo:
@@ -31,10 +35,6 @@ Git LFS (Large File Storage) is an extension for Git that allows you to manage l
    ```bash
    git lfs pull
    ```
-
-## Background
-
-The project involves working with SEC 10-K filings, which are comprehensive annual reports filed by public companies. These documents provide a detailed overview of a company's financial performance, including business descriptions, risk factors, financial analysis, and other structured data. 10-K filings are crucial for investors and analysts as they offer insights into a company's operations and financial health. However, they can be cumbersome to work with due to their length and complexity, often spanning hundreds of pages with dense financial and legal jargon. This assessment is designed to build a basic document search interface to help navigate and extract relevant information from these extensive reports more efficiently within a 3-hour timeframe.
 
 **What's already built:**
 - FastAPI backend with document storage and search endpoints (full-text, vector, hybrid)
@@ -120,3 +120,58 @@ The DuckDB database contains both company metadata and the full document content
 ## Questions?
 
 If you hit issues with setup or API behavior, just ask: recruiting@keru.ai
+
+## Hints
+
+### Exploring DuckDB Files
+
+This project uses DuckDB, a fast in-process analytical database, to store company metadata and document content. You can explore the database files interactively using DuckDB's built-in UI:
+
+```bash
+# Install DuckDB (if not already installed)
+# macOS
+brew install duckdb
+
+# Ubuntu/Debian
+sudo apt install duckdb
+
+# Windows - download from https://duckdb.org/docs/installation/
+
+# Launch DuckDB UI to explore the database
+duckdb -ui db/company_metadata_and_docs.duckdb
+```
+
+This will open a web interface (usually at `http://localhost:3000`) where you can:
+- Browse tables and schemas
+- Run SQL queries interactively
+- Visualize query results
+- Explore the data structure
+
+### About DuckDB
+
+DuckDB is an embedded analytical database designed for fast analytical queries. Key features:
+- **Columnar storage**: Optimized for analytical workloads
+- **Embedded**: No server setup required - runs in-process
+- **SQL compatible**: Standard SQL syntax with analytical extensions
+- **Fast**: Vectorized execution engine for high performance
+- **Python/R integration**: Native bindings for data science workflows
+
+In this project, DuckDB stores:
+- Company metadata (tickers, names, CIK numbers)
+- Parsed 10-K document sections with full text content
+- Pre-computed OpenAI embeddings for vector search
+
+Useful SQL queries to explore the data:
+```sql
+-- See available tables
+SHOW TABLES;
+
+-- Browse companies
+SELECT * FROM companies LIMIT 10;
+
+-- Check document sections
+SELECT company_name, section_name, LENGTH(content) as content_length
+FROM documents
+ORDER BY content_length DESC
+LIMIT 10;
+```
