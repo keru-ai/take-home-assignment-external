@@ -1,0 +1,18 @@
+# DuckDB database files (WAL files only - main .duckdb files tracked with LFS)
+db/*.duckdb.wal
+
+# Virtual environment
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Environment variables
+.env
+.env.local
+
+data/
+
+.DS_Store
