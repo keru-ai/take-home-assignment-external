@@ -15,16 +15,18 @@ A FastAPI server providing access to SEC filing documents and company metadata w
    OPENAI_API_KEY=your_openai_api_key_here
    ```
 
-   > **Note**: The OpenAI API key is required for vector search functionality. Without it, only basic endpoints and full-text search will be available.
+   > **Note**: The OpenAI API key is required for vector search functionality. Without it, only basic endpoints and full-text search will be available. When you submit your assignment however, don't submit your key!
 
-2. **Activate the environment** (this will create a virtual environment and install dependencies):
+2. **Set up the Python environment**:
    ```bash
-   ./activate.sh
+   python -m venv .venv
+   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+   pip install -e ".[dev]"
    ```
 
-   The script will automatically:
-   - Create a Python 3.12 virtual environment
-   - Install all required dependencies
+   This will:
+   - Create a virtual environment with your system Python (requires >=3.12)
+   - Install all required dependencies including dev tools
    - Activate the environment
 
 ## Start the Server

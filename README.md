@@ -2,16 +2,16 @@
 
 ## Git LFS Setup
 
-This repository uses Git LFS (Large File Storage) for data files and databases. Before cloning or working with this repo:
+Git LFS (Large File Storage) is an extension for Git that allows you to manage large files efficiently by replacing them in your repository with lightweight references. The actual file content is stored on a remote server. In this project, the database files located inside the `db` directory are managed using Git LFS. This approach is particularly useful for handling these large database files, as it keeps your repository size manageable and improves performance. Before cloning or working with this repo:
 
 1. **Install Git LFS** (if not already installed):
    ```bash
    # macOS
    brew install git-lfs
-   
+
    # Ubuntu/Debian
    sudo apt install git-lfs
-   
+
    # Windows
    # Download from https://git-lfs.github.io/
    ```
@@ -34,23 +34,24 @@ This repository uses Git LFS (Large File Storage) for data files and databases. 
 
 ## Background
 
-We work with SEC 10-K filings (annual reports from public companies) that contain business descriptions, risk factors, financial analysis, and other structured data. This is a 3-hour assessment to build a basic document search interface.
+The project involves working with SEC 10-K filings, which are comprehensive annual reports filed by public companies. These documents provide a detailed overview of a company's financial performance, including business descriptions, risk factors, financial analysis, and other structured data. 10-K filings are crucial for investors and analysts as they offer insights into a company's operations and financial health. However, they can be cumbersome to work with due to their length and complexity, often spanning hundreds of pages with dense financial and legal jargon. This assessment is designed to build a basic document search interface to help navigate and extract relevant information from these extensive reports more efficiently within a 3-hour timeframe.
 
 **What's already built:**
 - FastAPI backend with document storage and search endpoints (full-text, vector, hybrid)
 - Basic React frontend that calls a few API endpoints
-- 18 companies' 2019 10-K filings with parsed sections
-- Pre-computed document embeddings for vector search
+- 18 major companies' 2019 10-K filings with parsed sections (including AMZN, AAPL, MSFT, GOOGL, TSLA, META, NVDA, and others)
+- Pre-computed document embeddings for vector search using OpenAI's embedding models
+- DuckDB database with structured company metadata and document content
 
-## Your Task (~3 hours)
+## Your Task (Estimated Time: ~3 hours)
 
-Build a simple web app with these core features:
+Your task is to build a simple web application. This involves implementing the following core features:
 
 ### 1. Company List
 - Display available companies from the dataset that have data ingested
 - Basic filtering/searching through company names
 
-### 2. Document Browser  
+### 2. Document Browser
 - Show documents for a selected company
 - Display document sections (Business, Risk Factors, etc.)
 - Basic text display - no fancy formatting needed
@@ -69,11 +70,13 @@ Build a simple web app with these core features:
 ### Backend
 ```bash
 cd server/
-./activate.sh  # Sets up Python environment and dependencies
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+pip install -e ".[dev]"
 python main.py # Starts server on http://localhost:8000
 ```
 
-### Frontend  
+### Frontend
 ```bash
 cd app/
 npm install
@@ -84,16 +87,36 @@ npm run dev    # Starts on http://localhost:5173
 
 ## Technical Details
 
-**Stack**: FastAPI, React/TypeScript, DuckDB, OpenAI embeddings  
-**Key API endpoints**: `/companies`, `/documents`, `/search/*`  
+**Stack**: FastAPI, React/TypeScript, DuckDB, OpenAI embeddings
+**Key API endpoints**: `/companies`, `/documents`, `/search/*`
 **Search types**: Full-text (`/search/fts`), Vector (`/search/vector`), Hybrid (`/search/hybrid`)
+
+### Data Structure
+
+The dataset includes 18 major public companies' 2019 10-K filings, parsed into structured sections:
+
+- **Companies**: AMZN, AAPL, MSFT, GOOGL, TSLA, META, NVDA, ORCL, WMT, JPM, V, LLY, BRK-B, and others
+- **Document Sections**: Each 10-K is broken down into standard sections like:
+  - Business descriptions and operations
+  - Risk factors and forward-looking statements
+  - Management discussion & analysis (MD&A)
+  - Financial statements and notes
+  - Legal proceedings and regulatory matters
+  - Corporate governance and executive compensation
+
+- **Search Capabilities**:
+  - **Full-text search**: Traditional keyword matching across document content
+  - **Vector search**: Semantic similarity using OpenAI embeddings for concept-based queries
+  - **Hybrid search**: Combines both approaches for comprehensive results
+
+The DuckDB database contains both company metadata and the full document content with pre-computed embeddings, enabling fast retrieval and semantic search across millions of words of financial disclosures.
 
 ## Notes
 
-- AI coding tools are fine, but be ready to explain any generated code
-- The existing demo app shows basic API usage patterns
-- You may not be able to hit all of the objectives in 3 hours. That's ok. Focus on the pieces that will show off your strengths and create a cohesive experience. 
+- AI coding tools are fine, but be ready to explain any generated code.
+- The existing demo app shows basic API usage patterns.
+- You may not be able to hit all of the objectives in 3 hours. That's ok. Focus on the pieces that will show off your strengths and create a cohesive experience.
 
 ## Questions?
 
-If you hit issues with setup or API behavior, just ask.
+If you hit issues with setup or API behavior, just ask: recruiting@keru.ai
