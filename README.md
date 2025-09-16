@@ -1,5 +1,37 @@
 # SEC Document Search - Engineering Assessment
 
+## Git LFS Setup
+
+This repository uses Git LFS (Large File Storage) for data files and databases. Before cloning or working with this repo:
+
+1. **Install Git LFS** (if not already installed):
+   ```bash
+   # macOS
+   brew install git-lfs
+   
+   # Ubuntu/Debian
+   sudo apt install git-lfs
+   
+   # Windows
+   # Download from https://git-lfs.github.io/
+   ```
+
+2. **Initialize Git LFS** in your local repository:
+   ```bash
+   git lfs install
+   ```
+
+3. **Clone the repository** (LFS files will be downloaded automatically):
+   ```bash
+   git clone <repository-url>
+   cd take-home-assignment-external
+   ```
+
+   Or if you've already cloned without LFS, pull the LFS files:
+   ```bash
+   git lfs pull
+   ```
+
 ## Background
 
 We work with SEC 10-K filings (annual reports from public companies) that contain business descriptions, risk factors, financial analysis, and other structured data. This is a 3-hour assessment to build a basic document search interface.
