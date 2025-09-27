@@ -68,7 +68,7 @@ class CompanyTickerExchange(BaseModel):
     cik: int
     name: str
     ticker: str
-    exchange: str
+    exchange: Optional[str] = None
 
 
 class CompanyTicker(BaseModel):
@@ -252,6 +252,7 @@ async def search_companies(
     ticker: Optional[str] = Query(None, description="Ticker symbol search term"),
     cik: Optional[int] = Query(None, description="CIK (Central Index Key) number"),
     exchange: Optional[str] = Query(None, description="Exchange filter"),
+    has_data_ingested: Optional[bool] = Query(None, description="Filter companies that have documents in database"),
     limit: int = Query(50, ge=1, le=1000, description="Maximum number of results")
 ) -> List[CompanyTickerExchange]:
     """Search companies by name, ticker, CIK, or exchange."""
@@ -262,6 +263,10 @@ async def search_companies(
         # Build dynamic query based on provided parameters
         where_conditions = []
         params = []
+        
+        # Added this change: allows for companies to be filtered if they're in the 10k doc data.
+        if has_data_ingested is True:
+            where_conditions.append("cik IN (SELECT DISTINCT CAST(cik AS INTEGER) FROM documents)")
         
         if name:
             where_conditions.append("UPPER(name) LIKE UPPER(?)")
@@ -279,6 +284,7 @@ async def search_companies(
             where_conditions.append("UPPER(exchange) = UPPER(?)")
             params.append(exchange)
         
+        # Allow has_data_ingested alone without other parameters
         if not where_conditions:
             raise HTTPException(status_code=400, detail="At least one search parameter must be provided")
         

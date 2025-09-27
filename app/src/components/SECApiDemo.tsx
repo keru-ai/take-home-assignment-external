@@ -16,6 +16,9 @@ interface DemoState {
   vectorResults?: SearchResponse;
   hybridResults?: SearchResponse;
   searchExplanation?: Record<string, unknown>;
+  // Document sections
+  selectedCompany?: CompanyTickerExchange;
+  documentSections?: Array<{section_name: string, content: string}>;
 }
 
 export function SECApiDemo() {
@@ -30,6 +33,7 @@ export function SECApiDemo() {
   const [searchQuery, setSearchQuery] = useState("");
   const [companyQuery, setCompanyQuery] = useState("");
   const [tickerQuery, setTickerQuery] = useState("");
+  const [hasDataIngested, setHasDataIngested] = useState(false);
   
   // New search configuration state
   const [searchType, setSearchType] = useState<"fts" | "vector" | "hybrid">("hybrid");
@@ -73,19 +77,26 @@ export function SECApiDemo() {
   };
 
   const searchCompanies = async () => {
-    if (!companyQuery.trim()) return;
+    if (!companyQuery.trim() && !hasDataIngested) return;
     
     await handleAsync(async () => {
-      const companies = await api.getCompaniesByName(companyQuery.trim(), 10);
+      const companies = await api.searchCompanies({ 
+        name: companyQuery.trim() || undefined, 
+        has_data_ingested: hasDataIngested || undefined
+      });
       setState(prev => ({ ...prev, companies }));
     });
   };
 
   const searchByTicker = async () => {
-    if (!tickerQuery.trim()) return;
+    if (!tickerQuery.trim() && !hasDataIngested) return;
     
     await handleAsync(async () => {
-      const companies = await api.getCompaniesByTicker(tickerQuery.trim(), 5);
+      const companies = await api.searchCompanies({ 
+        ticker: tickerQuery.trim() || undefined, 
+        has_data_ingested: hasDataIngested || undefined
+      });
+      
       const documents = companies.length > 0 
         ? await api.getDocumentsByTicker(tickerQuery.trim(), 2019, 5)
         : [];
@@ -149,6 +160,24 @@ export function SECApiDemo() {
     });
   };
 
+  const fetchDocumentSections = async (company: CompanyTickerExchange) => {
+    await handleAsync(async () => {
+      // Currently just showing the doc's metadata
+      const docs = await api.getDocumentsByTicker(company.ticker, 2019, 1);
+      if (docs.length > 0) {
+        const doc = docs[0];
+        setState(prev => ({ 
+          ...prev, 
+          selectedCompany: company,
+          documentSections: [{
+            section_name: `Document: ${doc.filename}`,
+            content: `Year: ${doc.year} • Sections: ${doc.total_sections} • Characters: ${doc.total_chars.toLocaleString()}`
+          }]
+        }));
+      }
+    });
+  };
+
   const clearResults = () => {
     setState(prev => ({
       ...prev,
@@ -162,6 +191,8 @@ export function SECApiDemo() {
       health: undefined,
       stats: undefined,
       capabilities: undefined,
+      selectedCompany: undefined,
+      documentSections: undefined,
       error: null
     }));
   };
@@ -260,6 +291,18 @@ export function SECApiDemo() {
             <Button onClick={searchByTicker} disabled={state.loading} className="h-8 rounded-md px-3 text-xs border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground w-full">
               Search by Ticker
             </Button>
+          </div>
+          {/* Added this change: Filter on companies that have document data */}
+          <div className="space-y-2">
+            <label className="flex items-center space-x-2 text-sm">
+              <input
+                type="checkbox"
+                checked={hasDataIngested}
+                onChange={(e) => setHasDataIngested(e.target.checked)}
+                className="rounded border-gray-300"
+              />
+              <span>Filter on companies that have data to show</span>
+            </label>
           </div>
         </div>
 
@@ -364,13 +407,21 @@ export function SECApiDemo() {
 
       {/* Results */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Companies Results */}
+        {/* Companies Results - Left Side */}
         {state.companies.length > 0 && (
           <div className="space-y-3">
             <h3 className="text-lg font-semibold">Companies ({state.companies.length})</h3>
             <div className="max-h-96 overflow-y-auto space-y-2">
               {state.companies.map((company) => (
-                <div key={`${company.cik}-${company.ticker}`} className="border rounded p-3 text-sm">
+                <div 
+                  key={`${company.cik}-${company.ticker}`} 
+                  className={`border rounded p-3 text-sm cursor-pointer transition-colors ${
+                    state.selectedCompany?.cik === company.cik 
+                      ? 'bg-blue-50 border-blue-300' 
+                      : 'hover:bg-muted/50'
+                  }`}
+                  onClick={() => fetchDocumentSections(company)}
+                >
                   <div className="font-medium">{company.name}</div>
                   <div className="text-muted-foreground">
                     <span className="font-mono bg-muted px-1 rounded">{company.ticker}</span>
@@ -378,6 +429,25 @@ export function SECApiDemo() {
                     CIK: {company.cik}
                     {' • '}
                     {company.exchange}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Document Details - Right Side */}
+        {state.documentSections && state.documentSections.length > 0 && (
+          <div className="space-y-3">
+            <h3 className="text-lg font-semibold">
+              Document Info for {state.selectedCompany?.name}
+            </h3>
+            <div className="max-h-96 overflow-y-auto space-y-3">
+              {state.documentSections.map((section, index) => (
+                <div key={index} className="border rounded p-4 text-sm">
+                  <div className="font-medium text-blue-600 mb-2">{section.section_name}</div>
+                  <div className="text-muted-foreground">
+                    {section.content}
                   </div>
                 </div>
               ))}

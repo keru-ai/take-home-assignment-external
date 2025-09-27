@@ -126,6 +126,7 @@ export interface CompanySearchParams {
   ticker?: string;
   cik?: number;
   exchange?: string;
+  has_data_ingested?: boolean;
   limit?: number;
 }
 
@@ -264,7 +265,10 @@ export class SECApiClient {
    */
   async searchCompanies(params: CompanySearchParams): Promise<CompanyTickerExchange[]> {
     const queryString = this.buildQueryString(params as Record<string, unknown>);
-    return this.fetchAPI<CompanyTickerExchange[]>(`/companies/search${queryString}`);
+    const companies = await this.fetchAPI<CompanyTickerExchange[]>(`/companies/search${queryString}`);
+    
+    // Filter out companies with null exchange values to avoid backend validation errors
+    return companies.filter(company => company.exchange !== null);
   }
 
   // Document Search
