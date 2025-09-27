@@ -56,8 +56,16 @@ class VectorSearchEngine:
     def _check_embeddings_availability(self) -> bool:
         """Check if embeddings are available in the database."""
         try:
-            count = self.conn.execute("SELECT COUNT(*) FROM embeddings").fetchone()[0]
-            return count > 0
+            # Check if embeddings table exists and has data
+            result = self.conn.execute("""
+                SELECT COUNT(*) as count, 
+                       COUNT(DISTINCT chunk_id) as unique_chunks,
+                       array_length(ANY_VALUE(embedding)) as embedding_dim
+                FROM embeddings 
+                LIMIT 1
+            """).fetchone()
+            
+            return result and result[0] > 0
         except Exception:
             return False
     
@@ -65,16 +73,13 @@ class VectorSearchEngine:
         """Initialize OpenAI client for query embeddings."""
         api_key = os.getenv("OPENAI_API_KEY")
         if not api_key:
+            logger.warning("OPENAI_API_KEY environment variable not set")
             return None
         
         try:
             import openai
             return openai.OpenAI(api_key=api_key)
-        except ImportError:
-            logger.warning("OpenAI library not installed")
-            return None
-        except Exception as e:
-            logger.warning(f"Could not initialize OpenAI client: {e}")
+        except Exception:
             return None
     
     def search_chunks(self, request: VectorSearchRequest) -> SearchResponse:
@@ -112,11 +117,12 @@ class VectorSearchEngine:
                     method="vector",
                     total_results=0,
                     results=[],
-                    explanation={"error": "Could not generate query embedding"}
+                    explanation={"error": "Could not generate query embedding - check OpenAI API key"}
                 )
             
             # Perform vector search
             results_df = self._search_vectors(request, query_embedding)
+        
             
             # Convert to response format
             search_results = self._format_results(results_df, request.query, request.include_distances)
@@ -142,56 +148,56 @@ class VectorSearchEngine:
             )
     
     def _generate_query_embedding(self, query: str) -> Optional[List[float]]:
-        raise NotImplementedError("The method _generate_query_embedding is not yet implemented.")
+        """Generate embedding for search query using OpenAI API."""
+        if not self.openai_client:
+            return None
+        
+        try:
+            response = self.openai_client.embeddings.create(
+                model="text-embedding-3-small",
+                input=query,
+                encoding_format="float"
+            )
+            return response.data[0].embedding
+            
+        except Exception:
+            return None
     
     def _search_vectors(self, request: VectorSearchRequest, query_embedding: List[float]) -> pd.DataFrame:
-        """Perform vector similarity search."""
+        """Perform vector similarity search using Python cosine distance."""
+        import numpy as np
         
-        base_query = f"""
-            SELECT 
-                c.chunk_id,
-                d.cik,
-                d.filename,
-                c.section_id,
-                s.section_name,
-                c.chunk_text,
-                c.char_count,
-                array_cosine_distance(e.embedding, $1::FLOAT[{self.embedding_dimensions}]) AS distance
+        # Get all embeddings
+        query = """
+            SELECT c.chunk_id, d.cik, d.filename, c.section_id, s.section_name, 
+                   c.chunk_text, c.char_count, e.embedding
             FROM chunks c
             JOIN sections s ON c.section_id = s.section_id
             JOIN documents d ON c.doc_id = d.doc_id
             JOIN embeddings e ON c.chunk_id = e.chunk_id
         """
         
-        params = [query_embedding]
-        conditions = []
-        
-        # Add filters
-        if request.tickers:
-            ciks = self._lookup_ciks_for_tickers(request.tickers)
-            if ciks:
-                cik_placeholders = ','.join('?' for _ in ciks)
-                conditions.append(f"d.cik IN ({cik_placeholders})")
-                params.extend(ciks)
-            else:
+        try:
+            df = self.conn.execute(query).df()
+            if len(df) == 0:
                 return pd.DataFrame()
-        
-        if request.ciks:
-            cik_placeholders = ','.join('?' for _ in request.ciks)
-            conditions.append(f"d.cik IN ({cik_placeholders})")
-            params.extend(request.ciks)
-        
-        if request.max_distance:
-            conditions.append("array_cosine_distance(e.embedding, $1) <= ?")
-            params.append(request.max_distance)
-        
-        if conditions:
-            base_query += " WHERE " + " AND ".join(conditions)
-        
-        base_query += " ORDER BY distance ASC LIMIT ?"
-        params.append(request.limit)
-        
-        return self.conn.execute(base_query, params).df()
+            
+            # Calculate cosine distances
+            query_vec = np.array(query_embedding)
+            embeddings = np.array([row['embedding'] for _, row in df.iterrows()])
+            
+            # Vectorized cosine similarity calculation
+            similarities = np.dot(embeddings, query_vec) / (
+                np.linalg.norm(embeddings, axis=1) * np.linalg.norm(query_vec)
+            )
+            distances = 1.0 - similarities
+            
+            # Add distances and sort
+            df['distance'] = distances
+            return df.sort_values('distance').head(request.limit).drop('embedding', axis=1)
+            
+        except Exception:
+            return pd.DataFrame()
     
     def _lookup_ciks_for_tickers(self, tickers: List[str]) -> List[str]:
         """Look up CIKs for ticker symbols."""
