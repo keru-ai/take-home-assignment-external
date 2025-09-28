@@ -68,7 +68,7 @@ class CompanyTickerExchange(BaseModel):
     cik: int
     name: str
     ticker: str
-    exchange: str
+    exchange: Optional[str]
 
 
 class CompanyTicker(BaseModel):
@@ -252,7 +252,7 @@ async def search_companies(
     ticker: Optional[str] = Query(None, description="Ticker symbol search term"),
     cik: Optional[int] = Query(None, description="CIK (Central Index Key) number"),
     exchange: Optional[str] = Query(None, description="Exchange filter"),
-    limit: int = Query(50, ge=1, le=1000, description="Maximum number of results")
+    limit: int = Query(50, ge=1, le=20000, description="Maximum number of results")
 ) -> List[CompanyTickerExchange]:
     """Search companies by name, ticker, CIK, or exchange."""
     try:
@@ -279,18 +279,25 @@ async def search_companies(
             where_conditions.append("UPPER(exchange) = UPPER(?)")
             params.append(exchange)
         
-        if not where_conditions:
-            raise HTTPException(status_code=400, detail="At least one search parameter must be provided")
-        
-        where_clause = " AND ".join(where_conditions)
-        query = f"""
-            SELECT cik, name, ticker, exchange 
-            FROM company_tickers_exchange 
-            WHERE {where_clause}
-            ORDER BY name, ticker
-            LIMIT ?
-        """
-        params.append(limit)
+        if where_conditions:
+            where_clause = " AND ".join(where_conditions)
+            query = f"""
+                SELECT cik, name, ticker, exchange 
+                FROM company_tickers_exchange 
+                WHERE {where_clause}
+                ORDER BY name, ticker
+                LIMIT ?
+            """
+            params.append(limit)
+        else:
+            # No search parameters provided - return all companies
+            query = """
+                SELECT cik, name, ticker, exchange 
+                FROM company_tickers_exchange 
+                ORDER BY name, ticker
+                LIMIT ?
+            """
+            params.append(limit)
         
         result = db_conn.execute(query, params).fetchall()
         
