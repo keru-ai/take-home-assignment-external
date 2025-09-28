@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
 import { Pagination } from "@/components/Pagination"
 import { api, type CompanyTickerExchange } from "@/lib/api-client"
-import * as Table from "@radix-ui/themes/components/table"
 
 interface CompanyTableProps {
   onViewDocument: (company: CompanyTickerExchange) => void
@@ -24,15 +22,17 @@ export function CompanyTable({ onViewDocument }: CompanyTableProps) {
 
   // Filter companies when search term changes
   useEffect(() => {
-    if (!searchTerm.trim()) {
-      setFilteredCompanies(companies)
-    } else {
-      const filtered = companies.filter(company =>
+    let filtered = companies
+    
+    // Apply search filter
+    if (searchTerm.trim()) {
+      filtered = filtered.filter(company =>
         company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         company.ticker.toLowerCase().includes(searchTerm.toLowerCase())
       )
-      setFilteredCompanies(filtered)
     }
+    
+    setFilteredCompanies(filtered)
     setCurrentPage(1) // Reset to first page when filtering
   }, [searchTerm, companies])
 
@@ -98,9 +98,9 @@ export function CompanyTable({ onViewDocument }: CompanyTableProps) {
       <div className="bg-white rounded-lg shadow">
         <div className="p-6">
           <div className="text-red-600 mb-4">Error: {error}</div>
-          <Button onClick={loadCompanies} variant="outline">
+          <button onClick={loadCompanies} className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors cursor-pointer">
             Retry
-          </Button>
+          </button>
         </div>
       </div>
     )
@@ -121,71 +121,71 @@ export function CompanyTable({ onViewDocument }: CompanyTableProps) {
         </div>
       </div>
 
-               {/* Styled Table */}
-               <div className="overflow-x-auto">
-                 <table className="w-full">
-                   <thead className="bg-gray-50">
-                     <tr>
-                       <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                         Company Name
-                       </th>
-                       <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
-                         Ticker
-                       </th>
-                       <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
-                         CIK
-                       </th>
-                       <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
-                         Exchange
-                       </th>
-                       <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
-                         Action
-                       </th>
-                     </tr>
-                   </thead>
-                   <tbody className="bg-white divide-y divide-gray-200">
-                     {currentCompanies.length === 0 ? (
-                       <tr>
-                         <td colSpan={5} className="px-3 py-8 text-center text-gray-500">
-                           {searchTerm ? 'No companies found matching your search.' : 'No companies available.'}
-                         </td>
-                       </tr>
-                     ) : (
-                       currentCompanies.map((company) => (
-                         <tr key={`${company.cik}-${company.ticker}`} className="hover:bg-gray-50 transition-colors">
-                           <td className="px-3 py-2">
-                             <div 
-                               className="text-sm font-medium text-gray-900 truncate cursor-help" 
-                               title={company.name}
-                             >
-                               {company.name}
-                             </div>
-                           </td>
-                           <td className="px-3 py-2">
-                             <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                               {company.ticker}
-                             </span>
-                           </td>
-                           <td className="px-3 py-2 text-sm text-gray-500">
-                             {company.cik}
-                           </td>
-                           <td className="px-3 py-2 text-sm text-gray-500">
-                             {company.exchange || 'Unknown'}
-                           </td>
-                           <td className="px-3 py-2">
-                             <button
-                               onClick={() => handleViewDocument(company)}
-                               className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors cursor-pointer"
-                             >
-                               View SEC Doc
-                             </button>
-                           </td>
-                         </tr>
-                       ))
-                     )}
-                   </tbody>
-                 </table>
-               </div>
+      {/* Styled Table */}
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Company Name
+              </th>
+              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
+                Ticker
+              </th>
+              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
+                CIK
+              </th>
+              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
+                Exchange
+              </th>
+              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+                Action
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {currentCompanies.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="px-3 py-8 text-center text-gray-500">
+                  {searchTerm ? 'No companies found matching your search.' : 'No companies available.'}
+                </td>
+              </tr>
+            ) : (
+              currentCompanies.map((company) => (
+                <tr key={`${company.cik}-${company.ticker}`} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-3 py-2">
+                    <div 
+                      className="text-sm font-medium text-gray-900 truncate" 
+                      title={company.name}
+                    >
+                      {company.name}
+                    </div>
+                  </td>
+                  <td className="px-3 py-2">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                      {company.ticker}
+                    </span>
+                  </td>
+                  <td className="px-3 py-2 text-sm text-gray-500">
+                    {company.cik}
+                  </td>
+                  <td className="px-3 py-2 text-sm text-gray-500">
+                    {company.exchange || 'Unknown'}
+                  </td>
+                  <td className="px-3 py-2">
+                    <button
+                      onClick={() => handleViewDocument(company)}
+                      className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors cursor-pointer"
+                    >
+                      View SEC Doc
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
 
       {/* Pagination Controls */}
       {filteredCompanies.length > pageSize && (

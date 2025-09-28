@@ -562,6 +562,61 @@ async def search_hybrid_with_explanation(request: HybridSearchRequest) -> Dict[s
         logger.error(f"Hybrid search explanation error: {e}")
         raise HTTPException(status_code=500, detail=f"Hybrid search explanation error: {str(e)}")
 
+@app.get("/documents/{doc_id}/sections")
+async def get_document_sections(doc_id: str):
+    """Get sections for a specific document."""
+    try:
+        if db_conn is None:
+            raise HTTPException(status_code=500, detail="Database not connected")
+        
+        result = db_conn.execute("""
+            SELECT s.section_id, s.section_name, s.char_count, COUNT(c.chunk_id) as chunk_count
+            FROM sections s
+            LEFT JOIN chunks c ON s.section_id = c.section_id
+            WHERE s.doc_id = ?
+            GROUP BY s.section_id, s.section_name, s.char_count
+            ORDER BY s.section_name
+        """, [doc_id]).fetchall()
+        
+        return [{"section_id": row[0], "section_name": row[1], "char_count": row[2], "chunk_count": row[3]} for row in result]
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error getting sections: {str(e)}")
+
+@app.get("/documents/{doc_id}/sections/{section_id}/content")
+async def get_section_content(doc_id: str, section_id: str):
+    """Get content for a specific section."""
+    try:
+        if db_conn is None:
+            raise HTTPException(status_code=500, detail="Database not connected")
+        
+        # First try to get content from sections table
+        section_result = db_conn.execute("""
+            SELECT section_content, char_count
+            FROM sections
+            WHERE section_id = ?
+        """, [section_id]).fetchone()
+        
+        if section_result and section_result[0]:
+            return {"section_id": section_id, "content": section_result[0], "char_count": section_result[1]}
+        
+        # Fallback to chunks if section_content is empty
+        chunk_result = db_conn.execute("""
+            SELECT chunk_text
+            FROM chunks
+            WHERE section_id = ?
+            ORDER BY chunk_index
+        """, [section_id]).fetchall()
+        
+        if chunk_result:
+            content = "\n\n".join([row[0] for row in chunk_result])
+            return {"section_id": section_id, "content": content, "char_count": len(content)}
+        
+        raise HTTPException(status_code=404, detail="Section content not found")
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error getting section content: {str(e)}")
+
 if __name__ == "__main__":
     # Run the server with uvicorn
     uvicorn.run(

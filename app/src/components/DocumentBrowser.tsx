@@ -1,13 +1,17 @@
 import { useState, useEffect } from "react"
 import type { CompanyTickerExchange, DocumentMetadata } from "@/lib/api-client"
+import { api } from "@/lib/api-client"
 
 interface DocumentBrowserProps {
   company: CompanyTickerExchange | null
 }
 
 interface DocumentSection {
+  section_id: string
   section_name: string
   content: string
+  char_count: number
+  chunk_count: number
 }
 
 export function DocumentBrowser({ company }: DocumentBrowserProps) {
@@ -16,6 +20,8 @@ export function DocumentBrowser({ company }: DocumentBrowserProps) {
   const [selectedSection, setSelectedSection] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [noDocumentAvailable, setNoDocumentAvailable] = useState(false)
+  const [loadingContent, setLoadingContent] = useState(false)
 
   useEffect(() => {
     if (company) {
@@ -24,27 +30,41 @@ export function DocumentBrowser({ company }: DocumentBrowserProps) {
       setDocument(null)
       setSections([])
       setSelectedSection(null)
+      setError(null)
+      setNoDocumentAvailable(false)
     }
   }, [company])
 
   const loadDocument = async (cik: number) => {
     setLoading(true)
     setError(null)
+    setNoDocumentAvailable(false)
     
     try {
-      // Get company's 2019 document using the API client
-      const docs = await fetch(`http://localhost:8000/documents/search?ciks=${cik}&year=2019&limit=1`)
-        .then(res => res.json())
+      // Use API client to get company's 2019 document
+      const docs = await api.searchDocuments({ ciks: cik.toString(), year: 2019, limit: 1 })
       
       if (docs.length > 0) {
         setDocument(docs[0])
-        // TODO: Load sections when API endpoint is available
-        // const sectionsData = await fetch(`http://localhost:8000/documents/${docs[0].doc_id}/sections`)
-        //   .then(res => res.json())
-        // setSections(sectionsData)
-        setSections([]) // Placeholder until API is ready
+        
+        // Load sections using the new API endpoint
+        try {
+          const sectionsData = await fetch(`http://localhost:8000/documents/${docs[0].doc_id}/sections`)
+            .then(res => res.json())
+          
+          setSections(sectionsData.map((s: any) => ({ 
+            section_id: s.section_id,
+            section_name: s.section_name,
+            content: '', // Content will be loaded on demand
+            char_count: s.char_count || 0,
+            chunk_count: s.chunk_count || 0
+          })))
+        } catch (sectionError) {
+          console.warn('Could not load sections:', sectionError)
+          setSections([]) // Fall back to empty sections
+        }
       } else {
-        setError('No 2019 document found for this company')
+        setNoDocumentAvailable(true)
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load document')
@@ -53,8 +73,31 @@ export function DocumentBrowser({ company }: DocumentBrowserProps) {
     }
   }
 
-  const handleSectionSelect = (sectionName: string) => {
+  const handleSectionSelect = async (sectionName: string) => {
     setSelectedSection(sectionName)
+    
+    // Load section content if document is available
+    if (document) {
+      const section = sections.find(s => s.section_name === sectionName)
+      if (section && !section.content) {
+        setLoadingContent(true)
+        try {
+          const response = await fetch(`http://localhost:8000/documents/${document.doc_id}/sections/${section.section_id}/content`)
+            .then(res => res.json())
+          
+          // Update the section with content
+          setSections(prev => prev.map(s => 
+            s.section_name === sectionName 
+              ? { ...s, content: response.content }
+              : s
+          ))
+        } catch (error) {
+          console.warn('Could not load section content:', error)
+        } finally {
+          setLoadingContent(false)
+        }
+      }
+    }
   }
 
   if (!company) {
@@ -77,6 +120,19 @@ export function DocumentBrowser({ company }: DocumentBrowserProps) {
               <div key={i} className="h-8 bg-gray-200 rounded"></div>
             ))}
           </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (noDocumentAvailable) {
+    return (
+      <div className="bg-white rounded-lg shadow p-6">
+        <div className="text-center text-gray-600">
+          <h3 className="text-lg font-semibold text-gray-900 mb-3">
+            {company.name} ({company.ticker})
+          </h3>
+          <p>Data for this company will be added soon. Currently, our dataset only includes 18 major public companies' 2019 10-K filings such as AMZN, AAPL, MSFT, GOOGL, TSLA, META, NVDA, ORCL.</p>
         </div>
       </div>
     )
@@ -117,29 +173,37 @@ export function DocumentBrowser({ company }: DocumentBrowserProps) {
           <h4 className="font-medium text-gray-900 mb-4">Document Sections</h4>
           {sections.length === 0 ? (
             <div className="text-sm text-gray-500">
-              <p>Sections will be available once the API endpoint is implemented.</p>
-              <p className="mt-2">Common 10-K sections include:</p>
-              <ul className="mt-2 space-y-1 text-xs">
-                <li>• Business</li>
-                <li>• Risk Factors</li>
-                <li>• Management Discussion & Analysis</li>
-                <li>• Financial Statements</li>
-                <li>• Legal Proceedings</li>
-              </ul>
+              {document ? (
+                <p>No sections found for this document.</p>
+              ) : (
+                <>
+                  <p>Common 10-K sections include:</p>
+                  <ul className="mt-2 space-y-1 text-xs">
+                    <li>• Business</li>
+                    <li>• Risk Factors</li>
+                    <li>• Management Discussion & Analysis</li>
+                    <li>• Financial Statements</li>
+                    <li>• Legal Proceedings</li>
+                  </ul>
+                </>
+              )}
             </div>
           ) : (
             <div className="space-y-2">
               {sections.map((section) => (
                 <button
-                  key={section.section_name}
+                  key={section.section_id}
                   onClick={() => handleSectionSelect(section.section_name)}
-                  className={`w-full text-left p-3 rounded-md text-sm transition-colors ${
+                  className={`w-full text-left p-3 rounded-md text-sm transition-colors cursor-pointer ${
                     selectedSection === section.section_name
                       ? 'bg-blue-100 text-blue-900 border border-blue-200'
                       : 'hover:bg-gray-50 border border-transparent'
                   }`}
                 >
-                  {section.section_name}
+                  <div className="font-medium">{section.section_name}</div>
+                  {section.chunk_count > 0 && (
+                    <div className="text-xs text-gray-500">{section.chunk_count} chunks • {section.char_count.toLocaleString()} chars</div>
+                  )}
                 </button>
               ))}
             </div>
@@ -151,8 +215,16 @@ export function DocumentBrowser({ company }: DocumentBrowserProps) {
           <h4 className="font-medium text-gray-900 mb-4">Section Content</h4>
           {selectedSection ? (
             <div className="prose prose-sm max-w-none">
-              {sections.find(s => s.section_name === selectedSection)?.content || (
-                <p className="text-gray-500">Content will be displayed here once sections are loaded.</p>
+              {loadingContent ? (
+                <div className="animate-pulse">
+                  <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                  <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                </div>
+              ) : (
+                sections.find(s => s.section_name === selectedSection)?.content || (
+                  <p className="text-gray-500">Select a section to load its content.</p>
+                )
               )}
             </div>
           ) : (
