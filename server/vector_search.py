@@ -33,9 +33,9 @@ class VectorSearchEngine:
         self.openai_client = self._init_openai_client()
         
         if self.vector_available:
-            logger.info("✅ Vector search engine initialized successfully")
+            logger.info("Vector search engine initialized successfully")
         else:
-            logger.warning("⚠️ Vector search not fully available - check embeddings and OpenAI API key")
+            logger.warning("Vector search not fully available - check embeddings and OpenAI API key")
     
     @property
     def vector_available(self) -> bool:
@@ -64,12 +64,19 @@ class VectorSearchEngine:
     def _init_openai_client(self) -> Optional[object]:
         """Initialize OpenAI client for query embeddings."""
         api_key = os.getenv("OPENAI_API_KEY")
+        logger.info(f"OpenAI API Key check: {'Found' if api_key else 'NOT FOUND'}")
+        if api_key:
+            logger.info(f"API Key starts with: {api_key[:20]}...")
+        
         if not api_key:
+            logger.warning("No OPENAI_API_KEY found in environment")
             return None
         
         try:
             import openai
-            return openai.OpenAI(api_key=api_key)
+            client = openai.OpenAI(api_key=api_key)
+            logger.info("OpenAI client initialized successfully")
+            return client
         except ImportError:
             logger.warning("OpenAI library not installed")
             return None
@@ -142,7 +149,25 @@ class VectorSearchEngine:
             )
     
     def _generate_query_embedding(self, query: str) -> Optional[List[float]]:
-        raise NotImplementedError("The method _generate_query_embedding is not yet implemented.")
+        """Generate embedding for search query using OpenAI API."""
+        if not self.openai_client:
+            logger.error("No OpenAI client available")
+            return None
+        
+        try:
+            logger.info(f"Generating embedding for query: '{query[:50]}...'")
+            response = self.openai_client.embeddings.create(
+                model="text-embedding-3-small",
+                input=query
+            )
+            embedding = response.data[0].embedding
+            logger.info(f"Embedding generated successfully, dimensions: {len(embedding)}")
+            return embedding
+        except Exception as e:
+            logger.error(f"Failed to generate query embedding: {type(e).__name__}: {e}")
+            import traceback
+            logger.error(f"Full traceback: {traceback.format_exc()}")
+            return None
     
     def _search_vectors(self, request: VectorSearchRequest, query_embedding: List[float]) -> pd.DataFrame:
         """Perform vector similarity search."""

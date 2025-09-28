@@ -12,23 +12,39 @@ from pathlib import Path
 from contextlib import asynccontextmanager
 from typing import Dict, Any, List, Optional
 
+# Configure logging first
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 # Load environment variables from .env file in project root
 try:
     from dotenv import load_dotenv
-    load_dotenv("../.env")  # Load from project root relative to server/
+    import os
+    env_path = "../.env"
+    logger.info(f"Attempting to load .env from: {env_path}")
+    result = load_dotenv(env_path)
+    logger.info(f"Load dotenv result: {result}")
+    api_key = os.getenv("OPENAI_API_KEY")
+    logger.info(f"OPENAI_API_KEY after load_dotenv: {'Found' if api_key else 'NOT FOUND'}")
+    if api_key:
+        logger.info(f"API Key starts with: {api_key[:20]}...")
 except ImportError:
     # dotenv not available - environment variables must be set manually
-    pass
+    logger.warning("python-dotenv not available - environment variables must be set manually")
+    import os
+    api_key = os.getenv("OPENAI_API_KEY")
+    logger.info(f"OPENAI_API_KEY from system env: {'Found' if api_key else 'NOT FOUND'}")
+except Exception as e:
+    logger.error(f"Error loading .env file: {e}")
+    import os
+    api_key = os.getenv("OPENAI_API_KEY")
+    logger.info(f"OPENAI_API_KEY from system env: {'Found' if api_key else 'NOT FOUND'}")
 
 import duckdb
 import uvicorn
 from fastapi import FastAPI, HTTPException, Query, Body
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
-
-# Configure logging first
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 # Import search functionality
 try:
@@ -37,10 +53,10 @@ try:
     from vector_search import VectorSearchEngine  
     from hybrid_search import HybridSearchEngine
     SEARCH_AVAILABLE = True
-    logger.info("✅ Search engines imported successfully")
+    logger.info("Search engines imported successfully")
 except Exception as e:
     SEARCH_AVAILABLE = False
-    logger.warning(f"⚠️ Search engines not available: {e}")
+    logger.warning(f"Search engines not available: {e}")
     logger.warning("   Advanced search endpoints will be disabled")
 
 # Global database connection and search engines
@@ -133,24 +149,24 @@ async def lifespan(app: FastAPI):
         
         missing_tables = [t for t in expected_tables if t not in tables]
         if missing_tables:
-            logger.warning(f"⚠️ Missing expected tables: {missing_tables}")
+            logger.warning(f"Missing expected tables: {missing_tables}")
         else:
-            logger.info("✓ All expected tables found")
+            logger.info("All expected tables found")
         
         # Initialize search engines if available
         if SEARCH_AVAILABLE:
             try:
-                logger.info("🔍 Initializing search engines...")
+                logger.info("Initializing search engines...")
                 fts_search_engine = FTSSearchEngine(db_conn)
                 vector_search_engine = VectorSearchEngine(db_conn)
                 hybrid_search_engine = HybridSearchEngine(fts_search_engine, vector_search_engine)
-                logger.info("✅ Search engines initialized successfully")
+                logger.info("Search engines initialized successfully")
             except Exception as e:
-                logger.warning(f"⚠️ Could not initialize search engines: {e}")
+                logger.warning(f"Could not initialize search engines: {e}")
                 fts_search_engine = vector_search_engine = hybrid_search_engine = None
             
     except Exception as e:
-        logger.error(f"❌ Failed to initialize database: {e}")
+        logger.error(f"Failed to initialize database: {e}")
         raise
     
     yield

@@ -29,7 +29,7 @@ class HybridSearchEngine:
         self.fts_engine = fts_engine
         self.vector_engine = vector_engine
         
-        logger.info(f"✅ Hybrid search engine initialized (FTS: {fts_engine.fts_available}, Vector: {vector_engine.vector_available})")
+        logger.info(f"Hybrid search engine initialized (FTS: {fts_engine.fts_available}, Vector: {vector_engine.vector_available})")
     
     @property
     def hybrid_available(self) -> bool:

@@ -28,9 +28,9 @@ class FTSSearchEngine:
         self.fts_available = self._check_fts_availability()
         
         if self.fts_available:
-            logger.info("✅ FTS engine initialized successfully")
+            logger.info("FTS engine initialized successfully")
         else:
-            logger.warning("⚠️ FTS extension not available - falling back to LIKE search")
+            logger.warning("FTS extension not available - falling back to LIKE search")
     
     def _check_fts_availability(self) -> bool:
         """Check if FTS extension is available and indexes exist."""
@@ -148,6 +148,7 @@ class FTSSearchEngine:
     def _search_like_fallback(self, request: FTSSearchRequest) -> pd.DataFrame:
         """Fallback search using LIKE when FTS is not available."""
         
+        # Basic scoring based on term frequency and position
         query = f"""
             SELECT 
                 c.chunk_id,
@@ -156,14 +157,20 @@ class FTSSearchEngine:
                 s.section_name,
                 c.chunk_text,
                 c.char_count,
-                NULL as score
+                -- Simple scoring: count occurrences and favor earlier matches
+                (LENGTH(c.chunk_text) - LENGTH(REPLACE(UPPER(c.chunk_text), UPPER(?), ''))) 
+                / LENGTH(?) + 
+                CASE WHEN POSITION(UPPER(?) IN UPPER(c.chunk_text)) > 0 
+                     THEN 1.0 / POSITION(UPPER(?) IN UPPER(c.chunk_text)) * 100
+                     ELSE 0.0 
+                END as score
             FROM chunks c
             JOIN sections s ON c.section_id = s.section_id
             JOIN documents d ON c.doc_id = d.doc_id
             WHERE c.chunk_text ILIKE ?
         """
         
-        params = [f"%{request.query}%"]
+        params = [request.query, request.query, request.query, request.query, f"%{request.query}%"]
         conditions = []
         
         # Add filters
@@ -184,7 +191,7 @@ class FTSSearchEngine:
         if conditions:
             query += " AND " + " AND ".join(conditions)
         
-        query += " LIMIT ?"
+        query += " ORDER BY score DESC LIMIT ?"
         params.append(request.limit)
         
         return self.conn.execute(query, params).df()
@@ -228,7 +235,7 @@ class FTSSearchEngine:
                 section_name=row.get('section_name', ''),
                 chunk_text=row.get('chunk_text', ''),
                 char_count=int(row.get('char_count', 0)),
-                fts_score=float(row['score']) if row.get('score') is not None else None
+                fts_score=float(row['score']) if pd.notna(row.get('score')) else None
             )
             
             search_results.append(result_item)
