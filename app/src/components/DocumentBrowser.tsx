@@ -14,17 +14,59 @@ interface DocumentSection {
   chunk_count: number
 }
 
+// Keys for localStorage
+const STORAGE_KEYS = {
+  SELECTED_SECTION: 'sec-explorer-selected-section'
+} as const
+
 export function DocumentBrowser({ company }: DocumentBrowserProps) {
   const [document, setDocument] = useState<DocumentMetadata | null>(null)
   const [sections, setSections] = useState<DocumentSection[]>([])
-  const [selectedSection, setSelectedSection] = useState<string | null>(null)
+  
+  const [selectedSection, setSelectedSection] = useState<string | null>(() => {
+    if (!company) return null
+    try {
+      const key = `${STORAGE_KEYS.SELECTED_SECTION}-${company.cik}`
+      return localStorage.getItem(key) || null
+    } catch (error) {
+      console.warn('Failed to load selected section from localStorage', error)
+      return null
+    }
+  })
+  
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [noDocumentAvailable, setNoDocumentAvailable] = useState(false)
   const [loadingContent, setLoadingContent] = useState(false)
 
+  // Save selected section to localStorage whenever it changes
+  useEffect(() => {
+    if (!company) return
+    
+    try {
+      const key = `${STORAGE_KEYS.SELECTED_SECTION}-${company.cik}`
+      if (selectedSection) {
+        localStorage.setItem(key, selectedSection)
+      } else {
+        localStorage.removeItem(key)
+      }
+    } catch (error) {
+      console.warn('Failed to save selected section to localStorage', error)
+    }
+  }, [selectedSection, company])
+
   useEffect(() => {
     if (company) {
+      // Load persisted selected section for this company
+      try {
+        const key = `${STORAGE_KEYS.SELECTED_SECTION}-${company.cik}`
+        const persistedSection = localStorage.getItem(key)
+        setSelectedSection(persistedSection)
+      } catch (error) {
+        console.warn('Failed to load selected section from localStorage', error)
+        setSelectedSection(null)
+      }
+      
       loadDocument(company.cik)
     } else {
       setDocument(null)

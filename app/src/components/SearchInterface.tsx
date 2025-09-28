@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { api, type SearchResultItem, type SearchResponse } from "@/lib/api-client"
 
@@ -6,15 +6,56 @@ interface SearchInterfaceProps {
   onNavigateToSection: (result: SearchResultItem) => void
 }
 
+// Keys for localStorage
+const STORAGE_KEYS = {
+  SEARCH_QUERY: 'sec-explorer-search-query',
+  SEARCH_TYPE: 'sec-explorer-search-type'
+} as const
+
 export function SearchInterface({ onNavigateToSection }: SearchInterfaceProps) {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [searchType, setSearchType] = useState<'fts' | 'vector' | 'hybrid'>('vector')
+  const [searchQuery, setSearchQuery] = useState(() => {
+    try {
+      return localStorage.getItem(STORAGE_KEYS.SEARCH_QUERY) || ""
+    } catch (error) {
+      console.warn('Failed to load search query from localStorage', error)
+      return ""
+    }
+  })
+  
+  const [searchType, setSearchType] = useState<'fts' | 'vector' | 'hybrid'>(() => {
+    try {
+      const savedType = localStorage.getItem(STORAGE_KEYS.SEARCH_TYPE) as 'fts' | 'vector' | 'hybrid' | null
+      return (savedType && ['fts', 'vector', 'hybrid'].includes(savedType)) ? savedType : 'vector'
+    } catch (error) {
+      console.warn('Failed to load search type from localStorage', error)
+      return 'vector'
+    }
+  })
+  
   const [results, setResults] = useState<SearchResultItem[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [searchTime, setSearchTime] = useState<number | null>(null)
   const [totalResults, setTotalResults] = useState<number>(0)
   const [hasSearched, setHasSearched] = useState(false)
+
+  // Save search query to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEYS.SEARCH_QUERY, searchQuery)
+    } catch (error) {
+      console.warn('Failed to save search query to localStorage', error)
+    }
+  }, [searchQuery])
+
+  // Save search type to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEYS.SEARCH_TYPE, searchType)
+    } catch (error) {
+      console.warn('Failed to save search type to localStorage', error)
+    }
+  }, [searchType])
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) return

@@ -6,14 +6,75 @@ interface CompanyTableProps {
   onViewDocument: (company: CompanyTickerExchange) => void
 }
 
+// Keys for localStorage
+const STORAGE_KEYS = {
+  COMPANY_SEARCH: 'sec-explorer-company-search',
+  COMPANY_PAGE_SIZE: 'sec-explorer-company-page-size',
+  COMPANY_CURRENT_PAGE: 'sec-explorer-company-current-page'
+} as const
+
 export function CompanyTable({ onViewDocument }: CompanyTableProps) {
   const [companies, setCompanies] = useState<CompanyTickerExchange[]>([])
   const [filteredCompanies, setFilteredCompanies] = useState<CompanyTickerExchange[]>([])
-  const [searchTerm, setSearchTerm] = useState("")
-  const [currentPage, setCurrentPage] = useState(1)
-  const [pageSize, setPageSize] = useState(10)
+  
+  const [searchTerm, setSearchTerm] = useState(() => {
+    try {
+      return localStorage.getItem(STORAGE_KEYS.COMPANY_SEARCH) || ""
+    } catch (error) {
+      console.warn('Failed to load company search from localStorage', error)
+      return ""
+    }
+  })
+  
+  const [currentPage, setCurrentPage] = useState(() => {
+    try {
+      const savedPage = localStorage.getItem(STORAGE_KEYS.COMPANY_CURRENT_PAGE)
+      return savedPage ? parseInt(savedPage, 10) : 1
+    } catch (error) {
+      console.warn('Failed to load current page from localStorage', error)
+      return 1
+    }
+  })
+  
+  const [pageSize, setPageSize] = useState(() => {
+    try {
+      const savedPageSize = localStorage.getItem(STORAGE_KEYS.COMPANY_PAGE_SIZE)
+      return savedPageSize ? parseInt(savedPageSize, 10) : 10
+    } catch (error) {
+      console.warn('Failed to load page size from localStorage', error)
+      return 10
+    }
+  })
+  
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Save search term to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEYS.COMPANY_SEARCH, searchTerm)
+    } catch (error) {
+      console.warn('Failed to save company search to localStorage', error)
+    }
+  }, [searchTerm])
+
+  // Save current page to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEYS.COMPANY_CURRENT_PAGE, currentPage.toString())
+    } catch (error) {
+      console.warn('Failed to save current page to localStorage', error)
+    }
+  }, [currentPage])
+
+  // Save page size to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEYS.COMPANY_PAGE_SIZE, pageSize.toString())
+    } catch (error) {
+      console.warn('Failed to save page size to localStorage', error)
+    }
+  }, [pageSize])
 
   // Load all companies on component mount
   useEffect(() => {

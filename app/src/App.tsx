@@ -1,11 +1,37 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { CompanyTable } from "@/components/CompanyTable"
 import { DocumentBrowser } from "@/components/DocumentBrowser"
 import { SearchInterface } from "@/components/SearchInterface"
 import type { CompanyTickerExchange, SearchResultItem } from "@/lib/api-client"
 
+// Keys for localStorage
+const STORAGE_KEYS = {
+  SELECTED_COMPANY: 'sec-explorer-selected-company'
+} as const
+
 function App() {
-  const [selectedCompany, setSelectedCompany] = useState<CompanyTickerExchange | null>(null)
+  const [selectedCompany, setSelectedCompany] = useState<CompanyTickerExchange | null>(() => {
+    try {
+      const savedCompany = localStorage.getItem(STORAGE_KEYS.SELECTED_COMPANY)
+      return savedCompany ? JSON.parse(savedCompany) : null
+    } catch (error) {
+      console.warn('Failed to load selected company from localStorage', error)
+      return null
+    }
+  })
+
+  // Save selected company to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      if (selectedCompany) {
+        localStorage.setItem(STORAGE_KEYS.SELECTED_COMPANY, JSON.stringify(selectedCompany))
+      } else {
+        localStorage.removeItem(STORAGE_KEYS.SELECTED_COMPANY)
+      }
+    } catch (error) {
+      console.warn('Failed to save selected company to localStorage', error)
+    }
+  }, [selectedCompany])
 
   const handleViewDocument = (company: CompanyTickerExchange) => {
     setSelectedCompany(company)
