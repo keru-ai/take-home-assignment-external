@@ -1,0 +1,812 @@
+# Cursor AI Rules for SEC 10-K Document Search Take-Home Project
+# FastAPI + React/TypeScript + DuckDB Stack
+
+## Project Overview
+This project is a SEC 10-K document search application with:
+- Backend: Python FastAPI with DuckDB for data storage
+- Frontend: React/TypeScript with modern UI components
+- Features: Company search, document browsing, hybrid search (FTS + Vector)
+- Data: Pre-computed embeddings and full-text search capabilities
+
+## Python/FastAPI Backend Rules
+
+### Code Style & Structure
+- Use Python 3.12+ features and type hints throughout
+- Follow PEP 8 style guidelines with 88-character line limit (Black formatting)
+- Use descriptive variable and function names that clearly indicate purpose
+- Implement proper error handling with custom exception classes
+- Use Pydantic models for all API request/response validation
+- Structure code with clear separation of concerns (models, services, routes)
+
+### FastAPI Best Practices
+- Use dependency injection for database connections and services
+- Implement proper CORS middleware for frontend integration
+- Use FastAPI's automatic OpenAPI documentation generation
+- Implement proper HTTP status codes and error responses
+- Use async/await patterns for I/O operations when beneficial
+- Implement proper request validation with Pydantic models
+- Use FastAPI's built-in security features for any authentication needs
+
+### Database & DuckDB Integration
+- Use connection pooling and proper connection management
+- Implement proper transaction handling for data consistency
+- Use parameterized queries to prevent SQL injection
+- Handle database locking scenarios gracefully (read-only connections when needed)
+- Optimize queries for performance, especially for search operations
+- Use proper indexing strategies for search performance
+
+### Search Implementation
+- Implement clean abstractions for different search engines (FTS, Vector, Hybrid)
+- Use proper error handling for OpenAI API calls
+- Implement fallback mechanisms when external services are unavailable
+- Cache embeddings and search results when appropriate
+- Use proper logging for search operations and performance monitoring
+
+### Error Handling & Logging
+- Use structured logging with appropriate log levels
+- Implement comprehensive error handling with meaningful error messages
+- Use custom exception classes for different error types
+- Implement proper validation error responses
+- Log performance metrics for search operations
+
+## TypeScript/React Frontend Rules
+
+### Component Architecture
+- Use functional components with React hooks exclusively
+- Implement proper TypeScript interfaces for all props and state
+- Use React.FC type annotation for components with props
+- Implement custom hooks for reusable logic (API calls, state management)
+- Use React.memo for performance optimization when needed
+- Create reusable UI components with proper prop interfaces
+
+### TypeScript Best Practices
+- Use strict TypeScript configuration with no implicit any
+- Implement proper type definitions for API responses
+- Use union types and literal types for better type safety
+- Implement proper error boundary components
+- Use type inference where possible, explicit types where clarity is needed
+- Create shared type definitions for API contracts
+
+### State Management & Data Fetching
+- Use useState and useEffect hooks appropriately
+- Implement proper loading and error states for async operations
+- Use proper dependency arrays in useEffect hooks
+- Implement debouncing for search input fields
+- Use proper state lifting and prop drilling patterns
+- Consider using React Query or SWR for server state management
+
+### UI/UX Implementation
+- Implement responsive design with mobile-first approach
+- Use semantic HTML elements for accessibility
+- Implement proper loading indicators and skeleton screens
+- Use proper form validation with user-friendly error messages
+- Implement proper keyboard navigation and ARIA labels
+- Use consistent spacing and typography throughout the application
+
+### Performance Optimization
+- Implement code splitting with React.lazy and Suspense
+- Use proper key props in list rendering
+- Implement virtualization for large lists when needed
+- Optimize bundle size with proper import strategies
+- Use proper image optimization techniques
+- Implement proper caching strategies for API calls
+
+## Project-Specific Guidelines
+
+### API Integration
+- Create a centralized API client with proper error handling
+- Implement proper TypeScript types for all API endpoints
+- Use consistent error handling patterns across all API calls
+- Implement proper request/response logging for debugging
+- Use proper HTTP methods and status codes
+
+### Search Functionality
+- Implement proper search result highlighting
+- Use debounced search input to avoid excessive API calls
+- Implement proper search history and suggestions
+- Use proper pagination for search results
+- Implement proper search filters and sorting options
+
+### Document Handling
+- Implement proper document preview functionality
+- Use proper file type handling and validation
+- Implement proper document metadata display
+- Use proper document navigation and breadcrumbs
+- Implement proper document sharing and linking
+
+### Testing Strategy
+- Write unit tests for utility functions and business logic
+- Implement integration tests for API endpoints
+- Use proper mocking strategies for external dependencies
+- Implement proper test data management
+- Use proper test coverage reporting
+
+### Development Workflow
+- Use proper Git commit message conventions
+- Implement proper code review practices
+- Use proper environment variable management
+- Implement proper development/production configuration
+- Use proper dependency management and version pinning
+
+## Code Quality Standards
+- Maintain high code coverage with meaningful tests
+- Use proper linting and formatting tools (ESLint, Prettier, Black, isort)
+- Implement proper pre-commit hooks for code quality
+- Use proper documentation for complex business logic
+- Implement proper performance monitoring and metrics
+- Follow security best practices for data handling
+
+## Additional Instructions
+1. Always prioritize code readability and maintainability
+2. Implement proper error boundaries and fallback UI components
+3. Use proper loading states and skeleton screens for better UX
+4. Implement proper accessibility features (ARIA labels, keyboard navigation)
+5. Use proper semantic versioning for any package updates
+6. Implement proper monitoring and alerting for production issues
+7. Follow the existing project structure and naming conventions
+8. Prioritize performance optimization for search operations
+9. Implement proper data validation on both frontend and backend
+10. Use proper security practices for any sensitive data handling
+
+
+---
+description: FastAPI best practices and patterns for building modern Python web APIs
+globs: **/*.py, app/**/*.py, api/**/*.py
+---
+
+# FastAPI Best Practices
+
+## Project Structure
+- Use proper directory structure
+- Implement proper module organization
+- Use proper dependency injection
+- Keep routes organized by domain
+- Implement proper middleware
+- Use proper configuration management
+
+## API Design
+- Use proper HTTP methods
+- Implement proper status codes
+- Use proper request/response models
+- Implement proper validation
+- Use proper error handling
+- Document APIs with OpenAPI
+
+## Models
+- Use Pydantic models
+- Implement proper validation
+- Use proper type hints
+- Keep models organized
+- Use proper inheritance
+- Implement proper serialization
+
+## Database
+- Use proper ORM (SQLAlchemy)
+- Implement proper migrations
+- Use proper connection pooling
+- Implement proper transactions
+- Use proper query optimization
+- Handle database errors properly
+
+## Authentication
+- Implement proper JWT authentication
+- Use proper password hashing
+- Implement proper role-based access
+- Use proper session management
+- Implement proper OAuth2
+- Handle authentication errors properly
+
+## Security
+- Implement proper CORS
+- Use proper rate limiting
+- Implement proper input validation
+- Use proper security headers
+- Handle security errors properly
+- Implement proper logging
+
+## Performance
+- Use proper caching
+- Implement proper async operations
+- Use proper background tasks
+- Implement proper connection pooling
+- Use proper query optimization
+- Monitor performance metrics
+
+## Testing
+- Write proper unit tests
+- Implement proper integration tests
+- Use proper test fixtures
+- Implement proper mocking
+- Test error scenarios
+- Use proper test coverage
+
+## Deployment
+- Use proper Docker configuration
+- Implement proper CI/CD
+- Use proper environment variables
+- Implement proper logging
+- Use proper monitoring
+- Handle deployment errors properly
+
+## Documentation
+- Use proper docstrings
+- Implement proper API documentation
+- Use proper type hints
+- Keep documentation updated
+- Document error scenarios
+- Use proper versioning 
+
+
+---
+description: Code Quality Guidelines
+globs: 
+---
+# Code Quality Guidelines
+
+## Verify Information
+Always verify information before presenting it. Do not make assumptions or speculate without clear evidence.
+
+## File-by-File Changes
+Make changes file by file and give me a chance to spot mistakes.
+
+## No Apologies
+Never use apologies.
+
+## No Understanding Feedback
+Avoid giving feedback about understanding in comments or documentation.
+
+## No Whitespace Suggestions
+Don't suggest whitespace changes.
+
+## No Summaries
+Don't summarize changes made.
+
+## No Inventions
+Don't invent changes other than what's explicitly requested.
+
+## No Unnecessary Confirmations
+Don't ask for confirmation of information already provided in the context.
+
+## Preserve Existing Code
+Don't remove unrelated code or functionalities. Pay attention to preserving existing structures.
+
+## Single Chunk Edits
+Provide all edits in a single chunk instead of multiple-step instructions or explanations for the same file.
+
+## No Implementation Checks
+Don't ask the user to verify implementations that are visible in the provided context.
+
+## No Unnecessary Updates
+Don't suggest updates or changes to files when there are no actual modifications needed.
+
+## Provide Real File Links
+Always provide links to the real files, not x.md.
+
+## No Current Implementation
+Don't show or discuss the current implementation unless specifically requested.
+
+
+---
+description: Guidelines for writing clean, maintainable, and human-readable code. Apply these rules when writing or reviewing code to ensure consistency and quality.
+globs: 
+---
+# Clean Code Guidelines
+
+## Constants Over Magic Numbers
+- Replace hard-coded values with named constants
+- Use descriptive constant names that explain the value's purpose
+- Keep constants at the top of the file or in a dedicated constants file
+
+## Meaningful Names
+- Variables, functions, and classes should reveal their purpose
+- Names should explain why something exists and how it's used
+- Avoid abbreviations unless they're universally understood
+
+## Smart Comments
+- Don't comment on what the code does - make the code self-documenting
+- Use comments to explain why something is done a certain way
+- Document APIs, complex algorithms, and non-obvious side effects
+
+## Single Responsibility
+- Each function should do exactly one thing
+- Functions should be small and focused
+- If a function needs a comment to explain what it does, it should be split
+
+## DRY (Don't Repeat Yourself)
+- Extract repeated code into reusable functions
+- Share common logic through proper abstraction
+- Maintain single sources of truth
+
+## Clean Structure
+- Keep related code together
+- Organize code in a logical hierarchy
+- Use consistent file and folder naming conventions
+
+## Encapsulation
+- Hide implementation details
+- Expose clear interfaces
+- Move nested conditionals into well-named functions
+
+## Code Quality Maintenance
+- Refactor continuously
+- Fix technical debt early
+- Leave code cleaner than you found it
+
+## Testing
+- Write tests before fixing bugs
+- Keep tests readable and maintainable
+- Test edge cases and error conditions
+
+## Version Control
+- Write clear commit messages
+- Make small, focused commits
+- Use meaningful branch names 
+
+---
+description: Python best practices and patterns for modern software development with Flask and SQLite
+globs: **/*.py, src/**/*.py, tests/**/*.py
+---
+
+# Python Best Practices
+
+## Project Structure
+- Use src-layout with `src/your_package_name/`
+- Place tests in `tests/` directory parallel to `src/`
+- Keep configuration in `config/` or as environment variables
+- Store requirements in `requirements.txt` or `pyproject.toml`
+- Place static files in `static/` directory
+- Use `templates/` for Jinja2 templates
+
+## Code Style
+- Follow Black code formatting
+- Use isort for import sorting
+- Follow PEP 8 naming conventions:
+  - snake_case for functions and variables
+  - PascalCase for classes
+  - UPPER_CASE for constants
+- Maximum line length of 88 characters (Black default)
+- Use absolute imports over relative imports
+
+## Type Hints
+- Use type hints for all function parameters and returns
+- Import types from `typing` module
+- Use `Optional[Type]` instead of `Type | None`
+- Use `TypeVar` for generic types
+- Define custom types in `types.py`
+- Use `Protocol` for duck typing
+
+## Flask Structure
+- Use Flask factory pattern
+- Organize routes using Blueprints
+- Use Flask-SQLAlchemy for database
+- Implement proper error handlers
+- Use Flask-Login for authentication
+- Structure views with proper separation of concerns
+
+## Database
+- Use SQLAlchemy ORM
+- Implement database migrations with Alembic
+- Use proper connection pooling
+- Define models in separate modules
+- Implement proper relationships
+- Use proper indexing strategies
+
+## Authentication
+- Use Flask-Login for session management
+- Implement Google OAuth using Flask-OAuth
+- Hash passwords with bcrypt
+- Use proper session security
+- Implement CSRF protection
+- Use proper role-based access control
+
+## API Design
+- Use Flask-RESTful for REST APIs
+- Implement proper request validation
+- Use proper HTTP status codes
+- Handle errors consistently
+- Use proper response formats
+- Implement proper rate limiting
+
+## Testing
+- Use pytest for testing
+- Write tests for all routes
+- Use pytest-cov for coverage
+- Implement proper fixtures
+- Use proper mocking with pytest-mock
+- Test all error scenarios
+
+## Security
+- Use HTTPS in production
+- Implement proper CORS
+- Sanitize all user inputs
+- Use proper session configuration
+- Implement proper logging
+- Follow OWASP guidelines
+
+## Performance
+- Use proper caching with Flask-Caching
+- Implement database query optimization
+- Use proper connection pooling
+- Implement proper pagination
+- Use background tasks for heavy operations
+- Monitor application performance
+
+## Error Handling
+- Create custom exception classes
+- Use proper try-except blocks
+- Implement proper logging
+- Return proper error responses
+- Handle edge cases properly
+- Use proper error messages
+
+## Documentation
+- Use Google-style docstrings
+- Document all public APIs
+- Keep README.md updated
+- Use proper inline comments
+- Generate API documentation
+- Document environment setup
+
+## Development Workflow
+- Use virtual environments (venv)
+- Implement pre-commit hooks
+- Use proper Git workflow
+- Follow semantic versioning
+- Use proper CI/CD practices
+- Implement proper logging
+
+## Dependencies
+- Pin dependency versions
+- Use requirements.txt for production
+- Separate dev dependencies
+- Use proper package versions
+- Regularly update dependencies
+- Check for security vulnerabilities
+
+---
+description: React best practices and patterns for modern web applications
+globs: **/*.tsx, **/*.jsx, components/**/*
+---
+
+# React Best Practices
+
+## Component Structure
+- Use functional components over class components
+- Keep components small and focused
+- Extract reusable logic into custom hooks
+- Use composition over inheritance
+- Implement proper prop types with TypeScript
+- Split large components into smaller, focused ones
+
+## Hooks
+- Follow the Rules of Hooks
+- Use custom hooks for reusable logic
+- Keep hooks focused and simple
+- Use appropriate dependency arrays in useEffect
+- Implement cleanup in useEffect when needed
+- Avoid nested hooks
+
+## State Management
+- Use useState for local component state
+- Implement useReducer for complex state logic
+- Use Context API for shared state
+- Keep state as close to where it's used as possible
+- Avoid prop drilling through proper state management
+- Use state management libraries only when necessary
+
+## Performance
+- Implement proper memoization (useMemo, useCallback)
+- Use React.memo for expensive components
+- Avoid unnecessary re-renders
+- Implement proper lazy loading
+- Use proper key props in lists
+- Profile and optimize render performance
+
+## Forms
+- Use controlled components for form inputs
+- Implement proper form validation
+- Handle form submission states properly
+- Show appropriate loading and error states
+- Use form libraries for complex forms
+- Implement proper accessibility for forms
+
+## Error Handling
+- Implement Error Boundaries
+- Handle async errors properly
+- Show user-friendly error messages
+- Implement proper fallback UI
+- Log errors appropriately
+- Handle edge cases gracefully
+
+## Testing
+- Write unit tests for components
+- Implement integration tests for complex flows
+- Use React Testing Library
+- Test user interactions
+- Test error scenarios
+- Implement proper mock data
+
+## Accessibility
+- Use semantic HTML elements
+- Implement proper ARIA attributes
+- Ensure keyboard navigation
+- Test with screen readers
+- Handle focus management
+- Provide proper alt text for images
+
+## Code Organization
+- Group related components together
+- Use proper file naming conventions
+- Implement proper directory structure
+- Keep styles close to components
+- Use proper imports/exports
+- Document complex component logic 
+
+
+---
+description: Tailwind CSS and UI component best practices for modern web applications
+globs: **/*.css, **/*.tsx, **/*.jsx, tailwind.config.js, tailwind.config.ts
+---
+
+# Tailwind CSS Best Practices
+
+## Project Setup
+- Use proper Tailwind configuration
+- Configure theme extension properly
+- Set up proper purge configuration
+- Use proper plugin integration
+- Configure custom spacing and breakpoints
+- Set up proper color palette
+
+## Component Styling
+- Use utility classes over custom CSS
+- Group related utilities with @apply when needed
+- Use proper responsive design utilities
+- Implement dark mode properly
+- Use proper state variants
+- Keep component styles consistent
+
+## Layout
+- Use Flexbox and Grid utilities effectively
+- Implement proper spacing system
+- Use container queries when needed
+- Implement proper responsive breakpoints
+- Use proper padding and margin utilities
+- Implement proper alignment utilities
+
+## Typography
+- Use proper font size utilities
+- Implement proper line height
+- Use proper font weight utilities
+- Configure custom fonts properly
+- Use proper text alignment
+- Implement proper text decoration
+
+## Colors
+- Use semantic color naming
+- Implement proper color contrast
+- Use opacity utilities effectively
+- Configure custom colors properly
+- Use proper gradient utilities
+- Implement proper hover states
+
+## Components
+- Use shadcn/ui components when available
+- Extend components properly
+- Keep component variants consistent
+- Implement proper animations
+- Use proper transition utilities
+- Keep accessibility in mind
+
+## Responsive Design
+- Use mobile-first approach
+- Implement proper breakpoints
+- Use container queries effectively
+- Handle different screen sizes properly
+- Implement proper responsive typography
+- Use proper responsive spacing
+
+## Performance
+- Use proper purge configuration
+- Minimize custom CSS
+- Use proper caching strategies
+- Implement proper code splitting
+- Optimize for production
+- Monitor bundle size
+
+## Best Practices
+- Follow naming conventions
+- Keep styles organized
+- Use proper documentation
+- Implement proper testing
+- Follow accessibility guidelines
+- Use proper version control 
+
+
+---
+description: TypeScript coding standards and best practices for modern web development
+globs: **/*.ts, **/*.tsx, **/*.d.ts
+---
+
+# TypeScript Best Practices
+
+## Type System
+- Prefer interfaces over types for object definitions
+- Use type for unions, intersections, and mapped types
+- Avoid using `any`, prefer `unknown` for unknown types
+- Use strict TypeScript configuration
+- Leverage TypeScript's built-in utility types
+- Use generics for reusable type patterns
+
+## Naming Conventions
+- Use PascalCase for type names and interfaces
+- Use camelCase for variables and functions
+- Use UPPER_CASE for constants
+- Use descriptive names with auxiliary verbs (e.g., isLoading, hasError)
+- Prefix interfaces for React props with 'Props' (e.g., ButtonProps)
+
+## Code Organization
+- Keep type definitions close to where they're used
+- Export types and interfaces from dedicated type files when shared
+- Use barrel exports (index.ts) for organizing exports
+- Place shared types in a `types` directory
+- Co-locate component props with their components
+
+## Functions
+- Use explicit return types for public functions
+- Use arrow functions for callbacks and methods
+- Implement proper error handling with custom error types
+- Use function overloads for complex type scenarios
+- Prefer async/await over Promises
+
+## Best Practices
+- Enable strict mode in tsconfig.json
+- Use readonly for immutable properties
+- Leverage discriminated unions for type safety
+- Use type guards for runtime type checking
+- Implement proper null checking
+- Avoid type assertions unless necessary
+
+## Error Handling
+- Create custom error types for domain-specific errors
+- Use Result types for operations that can fail
+- Implement proper error boundaries
+- Use try-catch blocks with typed catch clauses
+- Handle Promise rejections properly
+
+## Patterns
+- Use the Builder pattern for complex object creation
+- Implement the Repository pattern for data access
+- Use the Factory pattern for object creation
+- Leverage dependency injection
+- Use the Module pattern for encapsulation 
+
+
+
+# Cursor UX/UI Rules
+
+## Core Principle
+Design for clarity, speed, and confidence: the user must always know where they are, what they are seeing, what just happened, and what they can do next.
+
+---
+
+## 1. Layout & Structure
+- Must be fully responsive: works flawlessly on desktop, tablet, and mobile.
+- Sidebar navigation for company list; main panel for documents and search results.
+- Sidebar collapses into a drawer on smaller screens.
+- Keep selected company name and ticker always visible in header.
+- Use consistent grid/flex alignment, spacing, and typography across all pages.
+- Maintain visual hierarchy with clear headings, subheadings, and section dividers.
+- Use whitespace effectively to separate content and avoid clutter.
+
+---
+
+## 2. Feedback & Status
+- Always show loading indicators immediately (skeletons for lists and documents, spinners for short actions).
+- Provide clear empty states with guidance (e.g., “No results. Try another keyword.”).
+- Show descriptive error states with retry options; never leave a blank screen.
+- Display current search query and selected mode above results.
+- Indicate which company is being browsed or searched at all times.
+
+---
+
+## 3. Input & State Management
+- Persist user inputs (filters, last query, search mode, expanded sections) in localStorage and restore on reload.
+- Autosave partially typed queries; restore when navigating back.
+- Provide clear controls to undo, reset, or clear filters and inputs.
+- Prevent invalid actions: disable buttons when inputs are empty or invalid.
+- Keep forms and search boxes consistent across all pages.
+
+---
+
+## 4. Search UX
+- Provide clear toggles/tabs for **Full-Text**, **Vector**, and **Hybrid** search; default to Vector.
+- Switching search modes preserves the current query and results.
+- Clearly label result type:
+  - Full-Text → highlight exact keyword matches.
+  - Vector → label as *semantic similarity results*.
+  - Hybrid → label as *combined keyword + semantic relevance*.
+- Each result must include company, section, excerpt, and score (if available).
+- Allow pagination or infinite scroll for large result sets.
+- Debounce search (≈300ms) and cancel in-flight requests when a new query is typed.
+- Support deep linking: URL encodes query, company, and search mode so results restore on reload.
+
+---
+
+## 5. Document Browser
+- Show each 10-K section (Business, Risk Factors, MD&A, etc.) as collapsible accordions.
+- Lazy load content only when section is expanded to improve performance.
+- Always show section title above text; text must be plain, left-aligned, and readable.
+- Font minimum 16px with 1.5 line height for comfortable reading.
+- Allow expanding/collapsing multiple sections without losing state on navigation.
+
+---
+
+## 6. Navigation & Flow
+- Navigation must require minimal clicks: Company → Documents → Search.
+- Use React Router with URL params to ensure back/forward browser navigation works.
+- Deep linking required: `/company/AMZN?query=risk&mode=vector` must restore full state.
+- Provide keyboard shortcuts:
+  - `/` focuses search input.
+  - `Enter` executes search.
+  - `Esc` clears input.
+- Do not hide essential controls behind hover-only states; all actions must be clearly visible.
+
+---
+
+## 7. Accessibility
+- Minimum WCAG AA color contrast (4.5:1) across all text and components.
+- All interactive elements must be focusable and operable with keyboard (Tab navigation).
+- Provide `aria-label`s for buttons, toggles, search modes, and non-textual UI.
+- Support zoom up to 200% without breaking layout.
+- Ensure screen readers announce page context, section names, and result metadata.
+
+---
+
+## 8. Performance & Resilience
+- Cancel outdated requests to avoid race conditions.
+- Abort any stuck request after 10s with graceful fallback.
+- Cache company lists and documents in memory and localStorage for faster reloads.
+- App must remain usable if one API fails — render what’s available, show clear fallback UI.
+- Use lazy loading for large text blocks and results beyond initial viewport.
+- Optimize rendering: avoid unnecessary re-renders and large DOM updates.
+
+---
+
+## 9. Discoverability & Learnability
+- Provide onboarding hint on first load: “Start by selecting a company on the left.”
+- Provide inline tip below search: “Vector search finds conceptually similar passages.”
+- Use consistent terminology (Company, Document, Section, Search).
+- Ensure affordances are obvious: buttons look clickable, inputs look editable, links look like links.
+- Never require memorization; keep controls visible at point of need.
+
+---
+
+## 10. Professional Polish
+- Use consistent card styles for company list, document sections, and search results.
+- Use microcopy that is concise, human, and professional:  
+  - Good → “No results found.”  
+  - Bad → “0 rows returned.”  
+- Respect system light/dark preference via CSS `prefers-color-scheme`.
+- Align headers, lists, and controls on a vertical rhythm grid.
+- Ensure spacing, margins, and padding are consistent across views.
+
+---
+
+## 11. Security & Privacy
+- Do not expose raw error messages or stack traces in the UI.
+- Do not store sensitive keys or credentials in localStorage.
+- Handle all inputs defensively; fail gracefully with safe defaults.
+- Ensure queries are sanitized before sending to API endpoints.
+
+---
+
+## 12. Golden Rules
+1. **Responsive:** Works seamlessly across devices and screen sizes.  
+2. **Persistent:** Remembers user preferences and state across sessions.  
+3. **Consistent:** Same design patterns, terminology, and controls everywhere.  
+4. **Transparent:** Always show system state, feedback, and outcomes.  
+5. **Recoverable:** Every action should allow undo, reset, or retry.  
+6. **Accessible:** Usable by everyone, regardless of ability or context.  
+7. **Performant:** Fast, resilient, and efficient under all conditions.  
+8. **Polished:** Professional and human-friendly details in every interaction.  
