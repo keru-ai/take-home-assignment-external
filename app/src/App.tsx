@@ -1,14 +1,14 @@
 import { SECApiDemo } from "@/components/SECApiDemo"
-import { TakeHomeLayout } from "@/components/TakeHomeLayout"
+import { TenKFileExplorer } from "@/components/TenKFileExplorer"
 
 function App() {
   const path = window.location.pathname
 
-  if (path === "/takeHome") {
-    return <TakeHomeLayout />
+  if (path === "/originalDemo") {
+    return <SECApiDemo />
   }
 
-  return <SECApiDemo />
+  return <TenKFileExplorer />
 }
 
 export default App

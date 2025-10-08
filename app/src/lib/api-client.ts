@@ -42,6 +42,12 @@ export interface DocumentMetadata {
   processor_version: string;
 }
 
+export interface DocumentSection {
+  section_id: string;
+  section_name: string;
+  content: string;
+}
+
 export interface DatabaseStats {
   company_tickers_exchange: number;
   company_tickers: number;
@@ -284,6 +290,13 @@ export class SECApiClient {
     return this.fetchAPI<DocumentMetadata>(`/documents/${encodeURIComponent(docId)}`);
   }
 
+  /**
+   * Get ordered sections for a document
+   */
+  async getDocumentSections(docId: string): Promise<DocumentSection[]> {
+    return this.fetchAPI<DocumentSection[]>(`/documents/${encodeURIComponent(docId)}/sections`);
+  }
+
   // New Advanced Search Methods
 
   /**
@@ -421,6 +434,7 @@ export const api = {
   // Documents
   searchDocuments: (params: DocumentSearchParams) => apiClient.searchDocuments(params),
   getDocumentById: (docId: string) => apiClient.getDocumentById(docId),
+  getDocumentSections: (docId: string) => apiClient.getDocumentSections(docId),
   getDocumentsByTicker: (ticker: string, year?: number, limit?: number) => apiClient.getDocumentsByTicker(ticker, year, limit),
   getDocumentsByCik: (cik: string, year?: number, limit?: number) => apiClient.getDocumentsByCik(cik, year, limit),
   

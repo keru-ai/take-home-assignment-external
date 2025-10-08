@@ -90,6 +90,12 @@ class DocumentMetadata(BaseModel):
     processor_version: str
 
 
+class DocumentSection(BaseModel):
+    section_id: str
+    section_name: str
+    content: str
+
+
 class DatabaseStats(BaseModel):
     company_tickers_exchange: int
     company_tickers: int
@@ -264,33 +270,35 @@ async def search_companies(
         params = []
         
         if name:
-            where_conditions.append("UPPER(name) LIKE UPPER(?)")
+            where_conditions.append("UPPER(c.name) LIKE UPPER(?)")
             params.append(f"%{name}%")
-        
+
         if ticker:
-            where_conditions.append("UPPER(ticker) LIKE UPPER(?)")
+            where_conditions.append("UPPER(c.ticker) LIKE UPPER(?)")
             params.append(f"%{ticker}%")
-        
+
         if cik:
-            where_conditions.append("cik = ?")
+            where_conditions.append("c.cik = ?")
             params.append(cik)
-        
+
         if exchange:
-            where_conditions.append("UPPER(exchange) = UPPER(?)")
+            where_conditions.append("UPPER(c.exchange) = UPPER(?)")
             params.append(exchange)
+
+        base_query = [
+            "SELECT DISTINCT c.cik, c.name, c.ticker, c.exchange",
+            "FROM company_tickers_exchange c",
+            "JOIN documents d ON TRY_CAST(d.cik AS BIGINT) = c.cik",
+        ]
+
+        if where_conditions:
+            base_query.append(f"WHERE {' AND '.join(where_conditions)}")
         
-        if not where_conditions:
-            raise HTTPException(status_code=400, detail="At least one search parameter must be provided")
-        
-        where_clause = " AND ".join(where_conditions)
-        query = f"""
-            SELECT cik, name, ticker, exchange
-            FROM company_tickers_exchange 
-            WHERE {where_clause}
-            ORDER BY name, ticker
-            LIMIT ?
-        """
+        base_query.append("ORDER BY c.name, c.ticker")
+        base_query.append("LIMIT ?")
         params.append(limit)
+
+        query = " ".join(base_query)
         
         result = db_conn.execute(query, params).fetchall()
         
@@ -409,6 +417,41 @@ async def get_document_by_id(doc_id: str) -> DocumentMetadata:
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error querying document by ID: {str(e)}")
+
+
+@app.get("/documents/{doc_id}/sections", response_model=List[DocumentSection])
+async def get_document_sections(doc_id: str) -> List[DocumentSection]:
+    """Get ordered sections for a given document."""
+    try:
+        if db_conn is None:
+            raise HTTPException(status_code=500, detail="Database not connected")
+
+        query = """
+            SELECT
+                section_id,
+                section_name,
+                COALESCE(section_content, '') AS content
+            FROM sections
+            WHERE doc_id = ?
+            ORDER BY section_id
+        """
+        rows = db_conn.execute(query, [doc_id]).fetchall()
+
+        if not rows:
+            raise HTTPException(status_code=404, detail=f"No sections found for document {doc_id}")
+
+        return [
+            DocumentSection(
+                section_id=row[0],
+                section_name=row[1],
+                content=row[2],
+            )
+            for row in rows
+        ]
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error retrieving document sections: {str(e)}")
 
 
 # Search Endpoints
