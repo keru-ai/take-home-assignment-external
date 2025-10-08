@@ -68,7 +68,7 @@ class CompanyTickerExchange(BaseModel):
     cik: int
     name: str
     ticker: str
-    exchange: str
+    exchange: Optional[str] = None
 
 
 class CompanyTicker(BaseModel):
@@ -284,7 +284,7 @@ async def search_companies(
         
         where_clause = " AND ".join(where_conditions)
         query = f"""
-            SELECT cik, name, ticker, exchange 
+            SELECT cik, name, ticker, exchange
             FROM company_tickers_exchange 
             WHERE {where_clause}
             ORDER BY name, ticker

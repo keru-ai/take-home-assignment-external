@@ -20,7 +20,7 @@ export interface CompanyTickerExchange {
   cik: number;
   name: string;
   ticker: string;
-  exchange: string;
+  exchange?: string | null;
 }
 
 export interface CompanyTicker {
