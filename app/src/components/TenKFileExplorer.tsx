@@ -113,7 +113,10 @@ export function TenKFileExplorer() {
       setCompaniesError(null)
 
       // Use a wildcard match to return a broad set of companies.
-      const result = await api.searchCompanies({ limit: COMPANY_FETCH_LIMIT })
+      const result = await api.searchCompanies({
+        has_documents_only: true,
+        limit: COMPANY_FETCH_LIMIT,
+      })
       setCompanies(sortCompanies(result))
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to load companies"
@@ -176,15 +179,23 @@ export function TenKFileExplorer() {
     }
 
     const namePattern = term
-    const requests = [
-      api.searchCompanies({ name: namePattern, limit: COMPANY_SEARCH_LIMIT })
-    ]
+        const requests = [
+          api.searchCompanies({
+            name: namePattern,
+            limit: COMPANY_SEARCH_LIMIT,
+            has_documents_only: true,
+          }),
+        ]
 
-    if (/^[A-Za-z0-9.-]{1,6}$/.test(term)) {
-      requests.push(
-        api.searchCompanies({ ticker: term.toUpperCase(), limit: COMPANY_SEARCH_LIMIT })
-      )
-    }
+        if (/^[A-Za-z0-9.-]{1,6}$/.test(term)) {
+          requests.push(
+            api.searchCompanies({
+              ticker: term.toUpperCase(),
+              limit: COMPANY_SEARCH_LIMIT,
+              has_documents_only: true,
+            })
+          )
+        }
 
     Promise.all(requests)
       .then((responses) => {

@@ -30,12 +30,7 @@ export function TenKDocumentDrawer({
   }
 
   const companyLabel =
-    document && document.cik
-      ? getCompanyInfo(
-          document.cik,
-          (document as unknown as { company_name?: string | null })?.company_name ?? null,
-        ).name
-      : docId
+    document && document.cik ? getCompanyInfo(document.cik).name : docId
 
   return (
     <div className="fixed inset-0 z-40">

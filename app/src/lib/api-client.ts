@@ -132,6 +132,7 @@ export interface CompanySearchParams {
   ticker?: string;
   cik?: number;
   exchange?: string;
+  has_documents_only?: boolean;
   limit?: number;
 }
 

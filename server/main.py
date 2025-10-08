@@ -258,6 +258,10 @@ async def search_companies(
     ticker: Optional[str] = Query(None, description="Ticker symbol search term"),
     cik: Optional[int] = Query(None, description="CIK (Central Index Key) number"),
     exchange: Optional[str] = Query(None, description="Exchange filter"),
+    has_documents_only: bool = Query(
+        False,
+        description="Return only companies that have at least one associated document"
+    ),
     limit: int = Query(50, ge=1, le=1000, description="Maximum number of results")
 ) -> List[CompanyTickerExchange]:
     """Search companies by name, ticker, CIK, or exchange."""
@@ -285,11 +289,23 @@ async def search_companies(
             where_conditions.append("UPPER(c.exchange) = UPPER(?)")
             params.append(exchange)
 
-        base_query = [
-            "SELECT DISTINCT c.cik, c.name, c.ticker, c.exchange",
-            "FROM company_tickers_exchange c",
-            "JOIN documents d ON TRY_CAST(d.cik AS BIGINT) = c.cik",
-        ]
+        if not where_conditions and not has_documents_only:
+            raise HTTPException(
+                status_code=400,
+                detail="At least one search parameter must be provided when has_documents_only is false"
+            )
+
+        if has_documents_only:
+            base_query = [
+                "SELECT DISTINCT c.cik, c.name, c.ticker, c.exchange",
+                "FROM company_tickers_exchange c",
+                "JOIN documents d ON TRY_CAST(d.cik AS BIGINT) = c.cik",
+            ]
+        else:
+            base_query = [
+                "SELECT c.cik, c.name, c.ticker, c.exchange",
+                "FROM company_tickers_exchange c",
+            ]
 
         if where_conditions:
             base_query.append(f"WHERE {' AND '.join(where_conditions)}")
