@@ -142,7 +142,25 @@ class VectorSearchEngine:
             )
     
     def _generate_query_embedding(self, query: str) -> Optional[List[float]]:
-        raise NotImplementedError("The method _generate_query_embedding is not yet implemented.")
+        """Generate an embedding vector for the input query."""
+        if not self.openai_client:
+            logger.warning("OpenAI client not initialized; cannot generate embedding")
+            return None
+        
+        try:
+            response = self.openai_client.embeddings.create(
+                model="text-embedding-3-small",
+                input=query.strip()
+            )
+            embedding = response.data[0].embedding if response.data else None
+            if embedding and len(embedding) == self.embedding_dimensions:
+                return list(embedding)
+            
+            logger.error("Received invalid embedding response from OpenAI")
+            return None
+        except Exception as e:
+            logger.error(f"Failed to generate query embedding: {e}")
+            return None
     
     def _search_vectors(self, request: VectorSearchRequest, query_embedding: List[float]) -> pd.DataFrame:
         """Perform vector similarity search."""
